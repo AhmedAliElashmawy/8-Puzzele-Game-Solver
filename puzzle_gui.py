@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer, QPoint, QPropertyAnimation, QEasingCurve, QParallelAnimationGroup
 from PyQt6.QtGui import QFont, QPixmap, QPainter
-from puzzle_solver import dfs, ids
+from puzzle_solver import dfs, ids, bfs, astar
 
 def delete_saved_states(folder_path: str):
     """Delete all files inside the saved states folder.
@@ -94,7 +94,7 @@ class PuzzleGUI(QWidget):
         # Controls
         controls = QHBoxLayout()
         self.alg_select = QComboBox()
-        self.alg_select.addItems(["DFS", "IDS"])
+        self.alg_select.addItems(["DFS", "IDS", "BFS", "A* (Manhattan)", "A* (Euclidean)"])
         controls.addWidget(self.alg_select)
 
         self.speed_slider = QSlider(Qt.Orientation.Horizontal)
@@ -136,8 +136,16 @@ class PuzzleGUI(QWidget):
 
         if algo == "DFS":
             result = dfs(self.start_state, self.goal_state)
-        else:
+        elif algo == "IDS":
             result = ids(self.start_state, self.goal_state)
+        elif algo == "BFS":
+            result = bfs(self.start_state, self.goal_state)
+        elif algo == "A* (Manhattan)":
+            result = astar(self.start_state, self.goal_state, heuristic='manhattan')
+        elif algo == "A* (Euclidean)":
+            result = astar(self.start_state, self.goal_state, heuristic='euclidean')
+        else:
+            result = dfs(self.start_state, self.goal_state)
 
         self.path = result.get("path", [])
         nodes_count = result.get('nodes', result.get('nodes_expanded', 0))

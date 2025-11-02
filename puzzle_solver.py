@@ -1,5 +1,8 @@
 import time
 from collections import deque
+from BFS import bfs
+from AStar import astar
+
 
 def get_neighbors(state):
     neighbors = []
