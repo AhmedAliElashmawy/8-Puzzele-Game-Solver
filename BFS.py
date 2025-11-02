@@ -22,99 +22,62 @@ def get_neighbors(state):
             neighbors.append((tuple(new_state), move))
     return neighbors
 
-
 def bfs(start, goal):
-    """Solve the 8-puzzle using BFS.
-
-    Args:
-        start: tuple (1D, 9 elements) representing the initial puzzle state
-        goal: tuple (1D, 9 elements) representing the goal state
-
-    Returns:
-        dict with keys: 'path', 'cost', 'nodes_expanded', 'depth', 'search_depth', 'time'
-    """
     start_time = time.time()
-
-    start = tuple(start)
-    goal = tuple(goal)
+    start, goal = tuple(start), tuple(goal)
 
     if start == goal:
-        end_time = time.time()
         return {
-            'path': [start],
-            'cost': 0,
-            'nodes_expanded': 1,
-            'search_depth': 0,
-            'time': end_time - start_time,
-            'moves': []
+            'path': [start], 'cost': 0, 'nodes_expanded': 0,
+            'search_depth': 0, 'time': 0, 'moves': []
         }
 
-    frontier = deque([(start, 0)])  # (state, depth)
+    frontier = deque([(start, 0)])
     parent_map = {start: None}
     move_map = {start: None}
-    depth_map = {start: 0}
-    nodes_expanded = -1
-    solution_found = False
+    nodes_expanded = 0
     max_depth_reached = 0
 
     while frontier:
-        print(frontier)
         current_state, current_depth = frontier.popleft()
-        print(current_depth)
-        nodes_expanded += 1
 
-        # update max depth with the node being expanded
+        if current_state == goal:
+            final_state = current_state
+            break
+
+        nodes_expanded += 1
         max_depth_reached = max(max_depth_reached, current_depth)
 
         for neighbor_state, move in get_neighbors(current_state):
             if neighbor_state not in parent_map:
                 parent_map[neighbor_state] = current_state
                 move_map[neighbor_state] = move
-                neighbor_depth = current_depth + 1
-                depth_map[neighbor_state] = neighbor_depth
-
-                # update max depth with newly generated child (captures whole tree depth)
-                max_depth_reached = max(max_depth_reached, neighbor_depth)
-
-                frontier.append((neighbor_state, neighbor_depth))
-
-        if current_state == goal:
-            solution_found = True
-            final_state = current_state
-            frontier.clear()
-            break
-
-    end_time = time.time()
-
-    if not solution_found:
+                frontier.append((neighbor_state, current_depth + 1))
+                max_depth_reached = max(max_depth_reached, current_depth + 1)
+    else:
+        # goal not found
         return {
-            'path': [],
-            'cost': -1,
-            'nodes_expanded': nodes_expanded,
-            'search_depth': max_depth_reached,
-            'time': end_time - start_time,
+            'path': [], 'cost': -1, 'nodes_expanded': nodes_expanded,
+            'search_depth': max_depth_reached, 'time': time.time() - start_time,
             'moves': []
         }
 
-    # Reconstruct path and moves
-    path = []
-    moves = []
+    # reconstruct path
+    path, moves = [], []
     cur = final_state
     while cur is not None:
         path.append(cur)
-        if move_map.get(cur) is not None:
+        if move_map[cur]:
             moves.append(move_map[cur])
-        cur = parent_map.get(cur)
+        cur = parent_map[cur]
     path.reverse()
     moves.reverse()
 
-    solution_cost = len(path) - 1
-
     return {
         'path': path,
-        'cost': solution_cost,
+        'cost': len(path) - 1,
         'nodes_expanded': nodes_expanded,
         'search_depth': max_depth_reached,
-        'time': end_time - start_time,
+        'time': time.time() - start_time,
         'moves': moves
     }

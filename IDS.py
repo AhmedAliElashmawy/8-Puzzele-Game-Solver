@@ -22,29 +22,24 @@ def get_neighbors(state):
     return neighbors
 
 
-def depth_limited_search(state, goal, limit, visited, parent, move_map, nodes_count):
-    """Depth-limited search helper function."""
+def depth_limited_search(state, goal, limit, parent, move_map, nodes_count, path):
     nodes_count[0] += 1
-    
+
     if state == goal:
         return True
-    
+
     if limit <= 0:
         return False
-    
-    visited.add(state)
-    
+
     for neighbor, move in get_neighbors(state):
-        if neighbor not in visited:
+        if neighbor not in path:  # prevent cycles only along the current path
             parent[neighbor] = state
             move_map[neighbor] = move
-            if depth_limited_search(neighbor, goal, limit - 1, visited, parent, move_map, nodes_count):
+            path.add(neighbor)
+            if depth_limited_search(neighbor, goal, limit - 1, parent, move_map, nodes_count, path):
                 return True
-            # Backtrack: remove from parent if not on solution path
-            if neighbor in parent and parent[neighbor] == state:
-                del parent[neighbor]
-                del move_map[neighbor]
-    
+            path.remove(neighbor)  # backtrack
+
     return False
 
 
@@ -81,10 +76,10 @@ def ids(start, goal, max_depth=50):
         parent = {start: None}
         move_map = {start: None}
         nodes_count = [0]
-        
-        found = depth_limited_search(start, goal, depth_limit, visited, parent, move_map, nodes_count)
+
+        found = depth_limited_search(start, goal, depth_limit, parent, move_map, nodes_count, {start})
         total_nodes_expanded += nodes_count[0]
-        
+
         if found:
             # Reconstruct path and moves
             path = []
