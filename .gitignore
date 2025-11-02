@@ -1,0 +1,6 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+
+# Saved solver states
+saved_states/
