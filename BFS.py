@@ -31,7 +31,7 @@ def bfs(start, goal):
         goal: tuple (1D, 9 elements) representing the goal state
 
     Returns:
-        dict with keys: 'path', 'cost', 'nodes_expanded', 'depth', 'time'
+        dict with keys: 'path', 'cost', 'nodes_expanded', 'depth', 'search_depth', 'time'
     """
     start_time = time.time()
 
@@ -44,27 +44,42 @@ def bfs(start, goal):
             'path': [start],
             'cost': 0,
             'nodes_expanded': 1,
-            'depth': 0,
+            'search_depth': 0,
             'time': end_time - start_time
         }
 
-    frontier = deque([start])
+    frontier = deque([(start, 0)])  # (state, depth)
     parent_map = {start: None}
-    nodes_expanded = 0
+    depth_map = {start: 0}
+    nodes_expanded = -1
     solution_found = False
+    max_depth_reached = 0
 
     while frontier:
-        current_state = frontier.popleft()
+        print(frontier)
+        current_state, current_depth = frontier.popleft()
+        print(current_depth)
         nodes_expanded += 1
+
+        # update max depth with the node being expanded
+        max_depth_reached = max(max_depth_reached, current_depth)
+
         for neighbor_state in get_neighbors(current_state):
             if neighbor_state not in parent_map:
                 parent_map[neighbor_state] = current_state
-                if neighbor_state == goal:
-                    solution_found = True
-                    final_state = neighbor_state
-                    frontier.clear()
-                    break
-                frontier.append(neighbor_state)
+                neighbor_depth = current_depth + 1
+                depth_map[neighbor_state] = neighbor_depth
+
+                # update max depth with newly generated child (captures whole tree depth)
+                max_depth_reached = max(max_depth_reached, neighbor_depth)
+
+                frontier.append((neighbor_state, neighbor_depth))
+
+        if current_state == goal:
+            solution_found = True
+            final_state = current_state
+            frontier.clear()
+            break
 
     end_time = time.time()
 
@@ -73,7 +88,7 @@ def bfs(start, goal):
             'path': [],
             'cost': -1,
             'nodes_expanded': nodes_expanded,
-            'depth': -1,
+            'search_depth': max_depth_reached,
             'time': end_time - start_time
         }
 
@@ -86,23 +101,11 @@ def bfs(start, goal):
     solution_path.reverse()
 
     solution_cost = len(solution_path) - 1
-    search_depth = solution_cost
 
     return {
         'path': solution_path,
         'cost': solution_cost,
         'nodes_expanded': nodes_expanded,
-        'depth': search_depth,
+        'search_depth': max_depth_reached,
         'time': end_time - start_time
     }
-
-
-if __name__ == '__main__':
-    # Test with 1D tuple format
-    start_state = (1, 4, 2, 6, 5, 8, 7, 3, 0)
-    goal_state = (0, 1, 2, 3, 4, 5, 6, 7, 8)
-    
-    print("Testing BFS:")
-    result = bfs(start_state, goal_state)
-    print(f"Cost: {result['cost']}, Nodes: {result['nodes_expanded']}, Time: {result['time']:.4f}s")
-    print(f"Path length: {len(result['path'])}")
