@@ -289,7 +289,7 @@ class PuzzleGUI(QWidget):
                 f.write(f"Cost: {result.get('cost', 0)}\n")
                 f.write(f"Nodes Expanded: {result.get('nodes', result.get('nodes_expanded', 0))}\n")
                 f.write(f"Execution Time: {result.get('time', 0) * 1e3:.3f} ms\n")
-                f.write(f"Solution Depth: {result.get('search_depth', 0)}\n\n")
+                f.write(f"Search Depth: {result.get('search_depth', 0)}\n\n")
                 
                 if self.moves:
                     f.write("-" * 60 + "\n")
