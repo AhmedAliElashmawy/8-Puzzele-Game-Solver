@@ -20,7 +20,7 @@ def get_neighbors(state):
         if 0 <= new_row < 3 and 0 <= new_col < 3:
             new_state = list(state)
             new_state[zero_index], new_state[new_row * 3 + new_col] = new_state[new_row * 3 + new_col], new_state[zero_index]
-            neighbors.append(tuple(new_state))
+            neighbors.append((tuple(new_state), move))
     return neighbors
 
 
@@ -80,7 +80,8 @@ def astar(start, goal, heuristic='manhattan'):
             'cost': 0,
             'nodes_expanded': 1,
             'search_depth': 0,
-            'time': end_time - start_time
+            'time': end_time - start_time,
+            'moves': []
         }
 
     goal_positions = _goal_positions(goal)
@@ -96,6 +97,7 @@ def astar(start, goal, heuristic='manhattan'):
     g_score_map = {start: 0}
     f_score_map = {start: heuristic_func(start)}
     parent_map = {start: None}
+    move_map = {start: None}
 
     heapq.heappush(open_heap, (f_score_map[start], 0, start))
 
@@ -120,12 +122,13 @@ def astar(start, goal, heuristic='manhattan'):
             final_state = current_state
             break
 
-        for neighbor_state in get_neighbors(current_state):
+        for neighbor_state, move in get_neighbors(current_state):
             tentative_g_score = g_score + 1
             if neighbor_state in closed_set:
                 continue
             if tentative_g_score < g_score_map.get(neighbor_state, float('inf')):
                 parent_map[neighbor_state] = current_state
+                move_map[neighbor_state] = move
                 g_score_map[neighbor_state] = tentative_g_score
                 neighbor_f_score = tentative_g_score + heuristic_func(neighbor_state)
                 heapq.heappush(open_heap, (neighbor_f_score, tentative_g_score, neighbor_state))
@@ -138,25 +141,31 @@ def astar(start, goal, heuristic='manhattan'):
             'cost': -1,
             'nodes_expanded': nodes_expanded,
             'search_depth': max_depth_reached,
-            'time': end_time - start_time
+            'time': end_time - start_time,
+            'moves': []
         }
 
-    # reconstruct path
-    solution_path = []
-    current_node = final_state
-    while current_node is not None:
-        solution_path.append(current_node)
-        current_node = parent_map.get(current_node)
-    solution_path.reverse()
+    # Reconstruct path and moves
+    path = []
+    moves = []
+    cur = final_state
+    while cur is not None:
+        path.append(cur)
+        if move_map.get(cur) is not None:
+            moves.append(move_map[cur])
+        cur = parent_map.get(cur)
+    path.reverse()
+    moves.reverse()
 
-    solution_cost = len(solution_path) - 1
+    solution_cost = len(path) - 1
     search_depth = solution_cost
 
     return {
-        'path': solution_path,
+        'path': path,
         'cost': solution_cost,
         'nodes_expanded': nodes_expanded,
         'search_depth': max_depth_reached,
-        'time': end_time - start_time
+        'time': end_time - start_time,
+        'moves': moves
     }
 

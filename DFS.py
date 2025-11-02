@@ -120,4 +120,3 @@ def dfs(start, goal, max_depth=50):
         'time': end_time - start_time,
         'moves': moves
     }
-

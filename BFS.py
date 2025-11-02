@@ -19,7 +19,7 @@ def get_neighbors(state):
         if 0 <= new_row < 3 and 0 <= new_col < 3:
             new_state = list(state)
             new_state[zero_index], new_state[new_row * 3 + new_col] = new_state[new_row * 3 + new_col], new_state[zero_index]
-            neighbors.append(tuple(new_state))
+            neighbors.append((tuple(new_state), move))
     return neighbors
 
 
@@ -45,11 +45,13 @@ def bfs(start, goal):
             'cost': 0,
             'nodes_expanded': 1,
             'search_depth': 0,
-            'time': end_time - start_time
+            'time': end_time - start_time,
+            'moves': []
         }
 
     frontier = deque([(start, 0)])  # (state, depth)
     parent_map = {start: None}
+    move_map = {start: None}
     depth_map = {start: 0}
     nodes_expanded = -1
     solution_found = False
@@ -64,9 +66,10 @@ def bfs(start, goal):
         # update max depth with the node being expanded
         max_depth_reached = max(max_depth_reached, current_depth)
 
-        for neighbor_state in get_neighbors(current_state):
+        for neighbor_state, move in get_neighbors(current_state):
             if neighbor_state not in parent_map:
                 parent_map[neighbor_state] = current_state
+                move_map[neighbor_state] = move
                 neighbor_depth = current_depth + 1
                 depth_map[neighbor_state] = neighbor_depth
 
@@ -89,23 +92,29 @@ def bfs(start, goal):
             'cost': -1,
             'nodes_expanded': nodes_expanded,
             'search_depth': max_depth_reached,
-            'time': end_time - start_time
+            'time': end_time - start_time,
+            'moves': []
         }
 
-    # Reconstruct path
-    solution_path = []
-    current_node = final_state
-    while current_node is not None:
-        solution_path.append(current_node)
-        current_node = parent_map[current_node]
-    solution_path.reverse()
+    # Reconstruct path and moves
+    path = []
+    moves = []
+    cur = final_state
+    while cur is not None:
+        path.append(cur)
+        if move_map.get(cur) is not None:
+            moves.append(move_map[cur])
+        cur = parent_map.get(cur)
+    path.reverse()
+    moves.reverse()
 
-    solution_cost = len(solution_path) - 1
+    solution_cost = len(path) - 1
 
     return {
-        'path': solution_path,
+        'path': path,
         'cost': solution_cost,
         'nodes_expanded': nodes_expanded,
         'search_depth': max_depth_reached,
-        'time': end_time - start_time
+        'time': end_time - start_time,
+        'moves': moves
     }
